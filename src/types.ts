@@ -18,6 +18,7 @@ export interface TopItem {
   id: string;
   rank: number;
   title: string;
+  description: string;
   image: string | null;
 }
 
