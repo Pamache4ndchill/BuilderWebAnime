@@ -31,10 +31,12 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Build
-        # Usamos CI=false para que no falle por warnings de TypeScript o Lint
-        run: |
-          export CI=false
-          npm run build
+        # Inyectamos los secretos como variables de entorno reales durante el build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          CI: false
+        run: npm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
