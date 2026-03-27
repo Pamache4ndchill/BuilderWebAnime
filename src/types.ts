@@ -1,0 +1,29 @@
+export type ContentBlock = 
+  | { id: string; type: 'text'; value: string }
+  | { id: string; type: 'image'; value: string; caption?: string };
+
+export interface NewsArticle {
+  id: string;
+  title: string;
+  subtitle: string;
+  headerImage: string | null;
+  content: ContentBlock[];
+  createdAt: number;
+  updatedAt: number;
+  status: 'draft' | 'published';
+  author?: string;
+}
+
+export interface TopItem {
+  id: string;
+  rank: number;
+  title: string;
+  image: string | null;
+}
+
+export interface TopList {
+  id: string;
+  type: 'anime' | 'manga';
+  items: TopItem[];
+  updatedAt: number;
+}
