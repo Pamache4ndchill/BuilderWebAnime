@@ -411,16 +411,16 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
                           <button 
                             onClick={() => moveBlock(block.id, 'up')}
                             disabled={index === 0}
-                            className="p-1.5 text-zinc-600 hover:text-pink-400 disabled:opacity-20 transition-colors"
+                            className="p-2 text-white hover:text-pink-400 disabled:opacity-10 transition-colors bg-zinc-800/50 rounded-lg"
                           >
-                            <ChevronRight className="-rotate-90" size={16} />
+                            <ChevronRight className="-rotate-90" size={24} />
                           </button>
                           <button 
                             onClick={() => moveBlock(block.id, 'down')}
                             disabled={index === selectedArticle.content.length - 1}
-                            className="p-1.5 text-zinc-600 hover:text-pink-400 disabled:opacity-20 transition-colors"
+                            className="p-2 text-white hover:text-pink-400 disabled:opacity-10 transition-colors bg-zinc-800/50 rounded-lg"
                           >
-                            <ChevronRight className="rotate-90" size={16} />
+                            <ChevronRight className="rotate-90" size={24} />
                           </button>
                           <button 
                             onClick={() => removeBlock(block.id)}
