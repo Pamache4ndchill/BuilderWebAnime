@@ -14,7 +14,8 @@ import {
   X,
   ArrowLeft,
   Loader2,
-  CloudUpload
+  CloudUpload,
+  User as UserIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ImageUploader } from './ImageUploader';
@@ -292,6 +293,10 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
                 <p className="text-xs opacity-60 line-clamp-2">
                   {article.subtitle || 'Sin subtítulo'}
                 </p>
+                <div className="flex items-center gap-1.5 mt-2 text-[9px] font-black uppercase tracking-wider text-pink-400">
+                  <UserIcon size={10} />
+                  <span>{article.author || 'Sin Autor'}</span>
+                </div>
                 
                 <button 
                   onClick={(e) => {
@@ -382,6 +387,10 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
                     onChange={(e) => updateArticle(selectedArticle.id, { subtitle: e.target.value })}
                     className="w-full text-xl text-zinc-500 border-none focus:ring-0 placeholder:text-zinc-500 outline-none resize-none h-24"
                   />
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-pink-500">
+                    <UserIcon size={14} />
+                    <span>Autor: {selectedArticle.author || author}</span>
+                  </div>
                 </div>
 
                 <div className="h-px bg-zinc-900 mb-12" />

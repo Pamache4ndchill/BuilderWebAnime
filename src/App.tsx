@@ -224,11 +224,6 @@ export default function App() {
                 </span>
                 <span className="opacity-40">System Release v3.5.0</span>
               </div>
-              <div className="flex items-center gap-4">
-                <button className="p-3 text-zinc-700 hover:text-pink-500 transition-colors">
-                  <Settings size={22} />
-                </button>
-              </div>
             </motion.div>
           </motion.div>
         ) : view === 'tops' ? (
