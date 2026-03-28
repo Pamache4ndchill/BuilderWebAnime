@@ -98,8 +98,12 @@ export const TopEditor: React.FC<TopEditorProps> = ({ onBack }) => {
       
       const updatedItems = await Promise.all(currentTop.items.map(async (item) => {
         if (item.image && item.image.startsWith('data:')) {
-          const url = await uploadToR2(item.image, `tops/${activeTab}`);
-          return { ...item, image: url };
+          try {
+            const url = await uploadToR2(item.image, `tops/${activeTab}`);
+            return { ...item, image: url };
+          } catch (r2Error: any) {
+            throw new Error(`Error subiendo imagen a R2: ${r2Error.message || 'Error desconocido'}`);
+          }
         }
         return item;
       }));
@@ -110,11 +114,11 @@ export const TopEditor: React.FC<TopEditorProps> = ({ onBack }) => {
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
+      const { error: supabaseError } = await supabase
         .from(tableName)
         .upsert(payload);
 
-      if (error) throw error;
+      if (supabaseError) throw new Error(`Error en Supabase: ${supabaseError.message} (${supabaseError.code})`);
 
       setTops(prev => ({
         ...prev,
@@ -126,9 +130,10 @@ export const TopEditor: React.FC<TopEditorProps> = ({ onBack }) => {
       }));
 
       console.log(`Top 10 de ${activeTab} guardado exitosamente`);
-    } catch (error) {
+      alert(`Top 10 de ${activeTab} actualizado correctamente.`);
+    } catch (error: any) {
       console.error('Error saving top:', error);
-      alert('Error al guardar el ranking.');
+      alert(error.message || 'Error al guardar el ranking.');
     } finally {
       setIsSaving(false);
     }

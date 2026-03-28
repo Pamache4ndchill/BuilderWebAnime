@@ -82,14 +82,22 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
       // 1. Upload Header Image to R2 if it's new (base64)
       let headerImage = selectedArticle.headerImage;
       if (headerImage && headerImage.startsWith('data:')) {
-        headerImage = await uploadToR2(headerImage, `${contentType}/headers`);
+        try {
+          headerImage = await uploadToR2(headerImage, `${contentType}/headers`);
+        } catch (r2Error: any) {
+          throw new Error(`Error subiendo imagen de cabecera a R2: ${r2Error.message || 'Error desconocido'}`);
+        }
       }
 
       // 2. Upload Content Block Images to R2 if they are new
       const updatedContent = await Promise.all(selectedArticle.content.map(async (block) => {
         if (block.type === 'image' && block.value && block.value.startsWith('data:')) {
-          const url = await uploadToR2(block.value, `${contentType}/blocks`);
-          return { ...block, value: url };
+          try {
+            const url = await uploadToR2(block.value, `${contentType}/blocks`);
+            return { ...block, value: url };
+          } catch (r2Error: any) {
+            throw new Error(`Error subiendo imagen de bloque a R2: ${r2Error.message || 'Error desconocido'}`);
+          }
         }
         return block;
       }));
@@ -106,11 +114,11 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
+      const { error: supabaseError } = await supabase
         .from(contentType)
         .upsert(payload);
 
-      if (error) throw error;
+      if (supabaseError) throw new Error(`Error en Supabase: ${supabaseError.message} (${supabaseError.code})`);
 
       // Update local state
       setArticles(prev => prev.map(a => 
@@ -120,9 +128,10 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
       ));
       
       console.log('Guardado exitosamente en la nube');
-    } catch (error) {
+      alert('Contenido publicado/actualizado correctamente.');
+    } catch (error: any) {
       console.error('Error saving:', error);
-      alert('Error al guardar el contenido. Verifica la consola para más detalles.');
+      alert(error.message || 'Error inesperado al guardar el contenido.');
     } finally {
       setIsSaving(false);
     }
