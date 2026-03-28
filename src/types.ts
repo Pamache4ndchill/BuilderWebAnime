@@ -1,5 +1,11 @@
 export type ContentBlock = 
-  | { id: string; type: 'text'; value: string }
+  | { 
+      id: string; 
+      type: 'text'; 
+      value: string; 
+      fontSize?: 'sm' | 'base' | 'lg' | 'xl' | '2xl';
+      listStyle?: 'none' | 'bullet' | 'dash';
+    }
   | { id: string; type: 'image'; value: string; caption?: string };
 
 export interface NewsArticle {

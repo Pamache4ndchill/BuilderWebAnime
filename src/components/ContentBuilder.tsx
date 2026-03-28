@@ -15,7 +15,11 @@ import {
   ArrowLeft,
   Loader2,
   CloudUpload,
-  User as UserIcon
+  User as UserIcon,
+  Minus,
+  List,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ImageUploader } from './ImageUploader';
@@ -194,6 +198,15 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
     updateArticle(selectedId, {
       content: selectedArticle.content.map(b => 
         b.id === blockId ? { ...b, value } : b
+      )
+    });
+  };
+
+  const updateBlockProps = (blockId: string, props: Partial<ContentBlock>) => {
+    if (!selectedId || !selectedArticle) return;
+    updateArticle(selectedId, {
+      content: selectedArticle.content.map(b => 
+        b.id === blockId ? { ...b, ...props } : b
       )
     });
   };
@@ -440,18 +453,94 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
                         </div>
 
                         {block.type === 'text' ? (
-                          <textarea 
-                            placeholder="Escribe aquí..."
-                            value={block.value}
-                            onChange={(e) => updateBlock(block.id, e.target.value)}
-                            className="w-full text-lg leading-relaxed text-purple-200 border-none focus:ring-0 placeholder:text-zinc-500 outline-none resize-none min-h-[100px]"
-                            style={{ height: 'auto' }}
-                            onInput={(e) => {
-                              const target = e.target as HTMLTextAreaElement;
-                              target.style.height = 'auto';
-                              target.style.height = `${target.scrollHeight}px`;
-                            }}
-                          />
+                          <div className="relative group/text">
+                            {/* Horizontal Toolbar above text */}
+                            <div className="flex items-center gap-4 mb-3 bg-zinc-900/40 p-1.5 px-3 rounded-full border border-zinc-800/50 w-fit backdrop-blur-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mr-1">Fuente</span>
+                                <div className="flex items-center bg-zinc-800/50 rounded-full px-2 py-0.5 border border-zinc-700/30">
+                                  <button 
+                                    onClick={() => {
+                                      const sizes: ('sm' | 'base' | 'lg' | 'xl' | '2xl')[] = ['sm', 'base', 'lg', 'xl', '2xl'];
+                                      const currentIndex = sizes.indexOf(block.fontSize || 'base');
+                                      if (currentIndex > 0) {
+                                        updateBlockProps(block.id, { fontSize: sizes[currentIndex - 1] });
+                                      }
+                                    }}
+                                    className="p-1 hover:text-pink-400 transition-colors text-zinc-400"
+                                    title="Disminuir fuente"
+                                  >
+                                    <ChevronDown size={14} />
+                                  </button>
+                                  <span className="text-[10px] font-bold text-pink-500 w-10 text-center uppercase tracking-tighter">{block.fontSize || 'base'}</span>
+                                  <button 
+                                    onClick={() => {
+                                      const sizes: ('sm' | 'base' | 'lg' | 'xl' | '2xl')[] = ['sm', 'base', 'lg', 'xl', '2xl'];
+                                      const currentIndex = sizes.indexOf(block.fontSize || 'base');
+                                      if (currentIndex < sizes.length - 1) {
+                                        updateBlockProps(block.id, { fontSize: sizes[currentIndex + 1] });
+                                      }
+                                    }}
+                                    className="p-1 hover:text-pink-400 transition-colors text-zinc-400"
+                                    title="Aumentar fuente"
+                                  >
+                                    <ChevronUp size={14} />
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="w-px h-4 bg-zinc-800" />
+
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mr-1">Lista</span>
+                                <div className="flex gap-1">
+                                  <button 
+                                    onClick={() => updateBlockProps(block.id, { listStyle: block.listStyle === 'bullet' ? 'none' : 'bullet' })}
+                                    className={`p-1.5 rounded-full transition-all ${block.listStyle === 'bullet' ? 'bg-pink-500 text-zinc-100 shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
+                                    title="Lista con puntos"
+                                  >
+                                    <List size={16} />
+                                  </button>
+                                  <button 
+                                    onClick={() => updateBlockProps(block.id, { listStyle: block.listStyle === 'dash' ? 'none' : 'dash' })}
+                                    className={`p-1.5 rounded-full transition-all ${block.listStyle === 'dash' ? 'bg-pink-500 text-zinc-100 shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
+                                    title="Lista con líneas"
+                                  >
+                                    <Minus size={16} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-4">
+                              {block.listStyle !== 'none' && block.listStyle && (
+                                <div className="mt-4 flex flex-col items-center">
+                                  {block.listStyle === 'bullet' ? (
+                                    <div className="w-1.5 h-1.5 rounded-full bg-pink-500 mt-2.5" />
+                                  ) : (
+                                    <div className="w-3 h-0.5 bg-pink-500 mt-3" />
+                                  )}
+                                </div>
+                              )}
+                              <textarea 
+                                placeholder="Escribe aquí..."
+                                value={block.value}
+                                onChange={(e) => updateBlock(block.id, e.target.value)}
+                                className={`w-full leading-relaxed text-purple-200 border-none focus:ring-0 placeholder:text-zinc-600 outline-none resize-none min-h-[40px]
+                                  ${block.fontSize === 'sm' ? 'text-sm' : ''}
+                                  ${block.fontSize === 'base' || !block.fontSize ? 'text-lg' : ''}
+                                  ${block.fontSize === 'lg' ? 'text-xl' : ''}
+                                  ${block.fontSize === 'xl' ? 'text-2xl' : ''}
+                                  ${block.fontSize === '2xl' ? 'text-3xl font-bold' : ''}
+                                `}
+                                style={{ height: 'auto' }}
+                                onInput={(e) => {
+                                  const target = e.target as HTMLTextAreaElement;
+                                  target.style.height = 'auto';
+                                  target.style.height = `${target.scrollHeight}px`;
+                                }}
+                              />
+                            </div>
+                          </div>
                       ) : (
                         <div className="space-y-2">
                           <ImageUploader 
