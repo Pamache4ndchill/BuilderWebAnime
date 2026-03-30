@@ -179,8 +179,8 @@ export const RecommendationEditor: React.FC<RecommendationEditorProps> = ({ onBa
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full bg-black border border-zinc-800 rounded-2xl px-6 py-4 text-white placeholder:text-zinc-700 focus:outline-none focus:border-pink-500 transition-colors font-medium"
+                  readOnly
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-zinc-400 focus:outline-none transition-colors font-medium cursor-not-allowed opacity-60"
                   placeholder="Ej: El equipo de Shonalime recomienda"
                 />
               </div>
