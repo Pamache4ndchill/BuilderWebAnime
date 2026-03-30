@@ -20,7 +20,7 @@ import { LoginPage } from './components/Auth/LoginPage';
 import { UsernameSetup } from './components/Auth/UsernameSetup';
 import { supabase } from './lib/supabase';
 
-type ViewMode = 'home' | 'noticia' | 'tendencia' | 'manga' | 'tops';
+type ViewMode = 'home' | 'noticia' | 'tendencia' | 'manga' | 'videojuego' | 'tops';
 
 export default function App() {
   const [view, setView] = useState<ViewMode>('home');
@@ -94,6 +94,13 @@ export default function App() {
       description: 'Escribe sobre los capítulos más recientes.',
       icon: <BookOpen size={32} />,
       color: 'bg-pink-500',
+    },
+    {
+      id: 'videojuego' as const,
+      title: 'Crear Videojuego',
+      description: 'Reviews y noticias de los últimos juegos.',
+      icon: <Layout size={32} />,
+      color: 'bg-green-500',
     },
     {
       id: 'tops' as const,
