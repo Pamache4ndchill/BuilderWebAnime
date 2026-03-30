@@ -16,11 +16,12 @@ import {
 } from 'lucide-react';
 import { ContentBuilder } from './components/ContentBuilder';
 import { TopEditor } from './components/TopEditor';
+import { RecommendationEditor } from './components/RecommendationEditor';
 import { LoginPage } from './components/Auth/LoginPage';
 import { UsernameSetup } from './components/Auth/UsernameSetup';
 import { supabase } from './lib/supabase';
 
-type ViewMode = 'home' | 'noticia' | 'tendencia' | 'manga' | 'videojuego' | 'tops';
+type ViewMode = 'home' | 'noticia' | 'tendencia' | 'manga' | 'videojuego' | 'tops' | 'recomendacion';
 
 export default function App() {
   const [view, setView] = useState<ViewMode>('home');
@@ -108,6 +109,13 @@ export default function App() {
       description: 'Gestiona los rankings de los mejores animes y mangas.',
       icon: <Trophy size={32} />,
       color: 'bg-yellow-500',
+    },
+    {
+      id: 'recomendacion' as const,
+      title: 'Te Recomendamos',
+      description: 'Destaca trailers y animes recomendados por el equipo.',
+      icon: <Plus size={32} />,
+      color: 'bg-pink-500',
     }
   ];
 
@@ -184,7 +192,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {cards.map((card, index) => (
                 <motion.button
                   key={card.id}
@@ -235,6 +243,8 @@ export default function App() {
           </motion.div>
         ) : view === 'tops' ? (
           <TopEditor onBack={() => setView('home')} />
+        ) : view === 'recomendacion' ? (
+          <RecommendationEditor onBack={() => setView('home')} />
         ) : (
           <ContentBuilder 
             key={view}

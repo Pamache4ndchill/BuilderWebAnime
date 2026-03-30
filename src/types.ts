@@ -34,3 +34,12 @@ export interface TopList {
   items: TopItem[];
   updatedAt: number;
 }
+
+export interface Recommendation {
+  id: number;
+  title: string;
+  anime_name: string;
+  trailer_url: string;
+  image_url: string;
+  created_at: string;
+}
