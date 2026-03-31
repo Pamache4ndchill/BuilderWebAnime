@@ -254,65 +254,82 @@ export const RecommendationEditor: React.FC<RecommendationEditorProps> = ({ onBa
               <Loader2 className="animate-spin text-pink-500" size={48} />
               <p className="text-zinc-500 font-black tracking-widest uppercase text-xs">Cargando recomendaciones...</p>
             </div>
-          ) : recommendations.length === 0 ? (
-            <div className="col-span-full py-32 bg-zinc-900 border border-zinc-800 rounded-[3rem] flex flex-col items-center justify-center space-y-6">
-              <div className="w-20 h-20 bg-black rounded-3xl flex items-center justify-center border border-zinc-800">
-                <Search size={32} className="text-zinc-700" />
-              </div>
-              <p className="text-zinc-500 font-black tracking-widest uppercase text-xs">No hay recomendaciones todavía</p>
-            </div>
           ) : (
-            recommendations.map((rec) => (
-              <motion.div
-                key={rec.id}
-                layout
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="group relative bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden hover:border-pink-500/30 transition-all duration-500"
-              >
-                <div className="aspect-video overflow-hidden">
-                  <img src={rec.image_url} alt={rec.anime_name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                </div>
-                
-                <div className="absolute top-6 right-6 flex gap-2">
-                   <button 
-                     onClick={() => handleEdit(rec)}
-                     className="w-10 h-10 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-xl flex items-center justify-center hover:bg-white hover:text-black transition-all transform hover:-rotate-6 shadow-lg"
-                   >
-                     <Edit2 size={16} />
-                   </button>
-                   <button 
-                     onClick={() => handleDelete(rec.id)}
-                     className="w-10 h-10 bg-red-500/10 backdrop-blur-md border border-red-500/20 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all transform hover:rotate-6 shadow-lg"
-                   >
-                     <Trash2 size={16} />
-                   </button>
-                </div>
+            Array.from({ length: 4 }).map((_, index) => {
+              const rec = recommendations[index];
+              if (rec) {
+                return (
+                  <motion.div
+                    key={rec.id}
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="group relative bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden hover:border-pink-500/30 transition-all duration-500"
+                  >
+                    <div className="aspect-video overflow-hidden">
+                      <img src={rec.image_url} alt={rec.anime_name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                    </div>
+                    
+                    <div className="absolute top-6 right-6 flex gap-2">
+                       <button 
+                         onClick={() => handleEdit(rec)}
+                         className="w-10 h-10 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-xl flex items-center justify-center hover:bg-white hover:text-black transition-all transform hover:-rotate-6 shadow-lg"
+                       >
+                         <Edit2 size={16} />
+                       </button>
+                       <button 
+                         onClick={() => handleDelete(rec.id)}
+                         className="w-10 h-10 bg-red-500/10 backdrop-blur-md border border-red-500/20 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all transform hover:rotate-6 shadow-lg"
+                       >
+                         <Trash2 size={16} />
+                       </button>
+                    </div>
 
-                <div className="p-8 relative">
-                   <div className="flex items-center gap-3 mb-3">
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-pink-500 py-1 px-3 bg-pink-500/10 rounded-full border border-pink-500/20">
-                         {rec.title}
-                      </span>
-                   </div>
-                   <h3 className="text-2xl font-black text-white tracking-tighter mb-4">{rec.anime_name}</h3>
-                   
-                   <div className="flex items-center gap-4">
-                     <a 
-                       href={rec.trailer_url} 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       className="flex-1 flex items-center justify-center gap-3 bg-white text-black px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-pink-500 hover:text-black transition-all group/btn"
-                     >
-                        <Play size={14} className="fill-current" />
-                        Ver Trailer
-                        <ExternalLink size={14} className="ml-1 opacity-50 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-                     </a>
-                   </div>
-                </div>
-              </motion.div>
-            ))
+                    <div className="p-8 relative">
+                       <div className="flex items-center gap-3 mb-3">
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-pink-500 py-1 px-3 bg-pink-500/10 rounded-full border border-pink-500/20">
+                             {rec.title}
+                          </span>
+                       </div>
+                       <h3 className="text-2xl font-black text-white tracking-tighter mb-4">{rec.anime_name}</h3>
+                       
+                       <div className="flex items-center gap-4">
+                         <a 
+                           href={rec.trailer_url} 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           className="flex-1 flex items-center justify-center gap-3 bg-white text-black px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-pink-500 hover:text-black transition-all group/btn"
+                         >
+                            <Play size={14} className="fill-current" />
+                            Ver Trailer
+                            <ExternalLink size={14} className="ml-1 opacity-50 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                         </a>
+                       </div>
+                    </div>
+                  </motion.div>
+                );
+              } else {
+                return (
+                  <motion.div
+                    key={`empty-${index}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onClick={() => {
+                      resetForm();
+                      setIsAdding(true);
+                    }}
+                    className="group relative bg-zinc-900/50 border-2 border-zinc-800 border-dashed rounded-[2.5rem] overflow-hidden hover:border-pink-500/50 transition-all duration-300 min-h-[300px] flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-900"
+                  >
+                    <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center border border-zinc-800 mb-6 group-hover:scale-110 group-hover:border-pink-500/50 transition-all duration-500">
+                      <Plus size={24} className="text-zinc-600 group-hover:text-pink-500 transition-colors" />
+                    </div>
+                    <p className="text-white font-black tracking-widest uppercase text-sm mb-2">Añadir Recomendación</p>
+                    <p className="text-zinc-500 font-medium text-[10px] uppercase tracking-widest">Espacio {index + 1} de 4</p>
+                  </motion.div>
+                );
+              }
+            })
           )}
         </div>
       )}
