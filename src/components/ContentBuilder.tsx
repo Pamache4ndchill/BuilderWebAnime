@@ -30,6 +30,34 @@ import { NewsArticle, ContentBlock } from '../types';
 import { supabase } from '../lib/supabase';
 import { uploadToR2 } from '../lib/r2';
 
+const RichTextEditor = ({ value, onChange, className, id, placeholder }: any) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+  
+  React.useEffect(() => {
+    if (ref.current && document.activeElement !== ref.current) {
+      if (ref.current.innerHTML !== value) {
+        ref.current.innerHTML = value || '';
+      }
+    }
+  }, [value]);
+
+  return (
+    <div
+      ref={ref}
+      id={id}
+      contentEditable
+      suppressContentEditableWarning
+      onInput={(e) => onChange(e.currentTarget.innerHTML)}
+      onPaste={(e) => {
+        // Optional: you can sanitize paste if needed, but standard paste is usually okay
+      }}
+      className={`editable-block ${className}`}
+      data-placeholder={placeholder}
+      style={{ outline: 'none', minHeight: '40px' }}
+    />
+  );
+};
+
 interface BuilderProps {
   title: string;
   contentType: string;
@@ -44,6 +72,35 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [activeFormats, setActiveFormats] = useState<Record<string, boolean>>({});
+  const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null);
+
+  const checkActiveFormats = React.useCallback(() => {
+    const selection = document.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      let node = selection.anchorNode;
+      while (node && node.nodeType !== 1) {
+        node = node.parentNode;
+      }
+      const editableElement = (node as Element)?.closest('.editable-block');
+      if (editableElement) {
+        const id = editableElement.id.replace('textarea-', '');
+        setFocusedBlockId(id);
+        setActiveFormats({
+          bold: document.queryCommandState('bold'),
+          italic: document.queryCommandState('italic'),
+          underline: document.queryCommandState('underline'),
+          insertUnorderedList: document.queryCommandState('insertUnorderedList'),
+          insertOrderedList: document.queryCommandState('insertOrderedList')
+        });
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('selectionchange', checkActiveFormats);
+    return () => document.removeEventListener('selectionchange', checkActiveFormats);
+  }, [checkActiveFormats]);
 
   const selectedArticle = articles.find(a => a.id === selectedId);
 
@@ -264,12 +321,18 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
     updateArticle(selectedId, { content: newContent });
     
     setTimeout(() => {
-      const el = document.getElementById(`textarea-${newBlock.id}`) as HTMLTextAreaElement;
+      const el = document.getElementById(`textarea-${newBlock.id}`);
       if (el) {
         el.focus();
-        el.setSelectionRange(0, 0);
+        // For contentEditable, setting selection is more complex, but we can just focus it.
       }
     }, 10);
+  };
+
+  const applyFormat = (e: React.MouseEvent, command: string, value?: string) => {
+    e.preventDefault(); // Keep focus on the contentEditable
+    document.execCommand(command, false, value);
+    setTimeout(checkActiveFormats, 10);
   };
 
   const filteredArticles = articles.filter(a => 
@@ -535,22 +598,22 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mr-1">Estilo</span>
                                 <div className="flex gap-1">
                                   <button 
-                                    onClick={() => updateBlockProps(block.id, { isBold: !block.isBold })}
-                                    className={`p-1.5 rounded-full transition-all ${block.isBold ? 'bg-pink-500 text-zinc-100 shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
+                                    onMouseDown={(e) => applyFormat(e, 'bold')}
+                                    className={`p-1.5 rounded-full transition-all ${focusedBlockId === block.id && activeFormats.bold ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
                                     title="Negrita"
                                   >
                                     <Bold size={16} />
                                   </button>
                                   <button 
-                                    onClick={() => updateBlockProps(block.id, { isItalic: !block.isItalic })}
-                                    className={`p-1.5 rounded-full transition-all ${block.isItalic ? 'bg-pink-500 text-zinc-100 shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
+                                    onMouseDown={(e) => applyFormat(e, 'italic')}
+                                    className={`p-1.5 rounded-full transition-all ${focusedBlockId === block.id && activeFormats.italic ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
                                     title="Cursiva"
                                   >
                                     <Italic size={16} />
                                   </button>
                                   <button 
-                                    onClick={() => updateBlockProps(block.id, { isUnderline: !block.isUnderline })}
-                                    className={`p-1.5 rounded-full transition-all ${block.isUnderline ? 'bg-pink-500 text-zinc-100 shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
+                                    onMouseDown={(e) => applyFormat(e, 'underline')}
+                                    className={`p-1.5 rounded-full transition-all ${focusedBlockId === block.id && activeFormats.underline ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
                                     title="Subrayado"
                                   >
                                     <Underline size={16} />
@@ -564,65 +627,35 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mr-1">Lista</span>
                                 <div className="flex gap-1">
                                   <button 
-                                    onClick={() => updateBlockProps(block.id, { listStyle: block.listStyle === 'bullet' ? 'none' : 'bullet' })}
-                                    className={`p-1.5 rounded-full transition-all ${block.listStyle === 'bullet' ? 'bg-pink-500 text-zinc-100 shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
+                                    onMouseDown={(e) => applyFormat(e, 'insertUnorderedList')}
+                                    className={`p-1.5 rounded-full transition-all ${focusedBlockId === block.id && activeFormats.insertUnorderedList ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
                                     title="Lista con puntos"
                                   >
                                     <List size={16} />
                                   </button>
                                   <button 
-                                    onClick={() => updateBlockProps(block.id, { listStyle: block.listStyle === 'dash' ? 'none' : 'dash' })}
-                                    className={`p-1.5 rounded-full transition-all ${block.listStyle === 'dash' ? 'bg-pink-500 text-zinc-100 shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
-                                    title="Lista con líneas"
+                                    onMouseDown={(e) => applyFormat(e, 'insertOrderedList')}
+                                    className={`p-1.5 rounded-full transition-all ${focusedBlockId === block.id && activeFormats.insertOrderedList ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
+                                    title="Lista numerada"
                                   >
-                                    <Minus size={16} />
+                                    <List size={16} className="rotate-180" />
                                   </button>
                                 </div>
                               </div>
                             </div>
                             <div className="flex gap-4">
-                              {block.listStyle !== 'none' && block.listStyle && (
-                                <div className="mt-4 flex flex-col items-center">
-                                  {block.listStyle === 'bullet' ? (
-                                    <div className="w-1.5 h-1.5 rounded-full bg-pink-500 mt-2.5" />
-                                  ) : (
-                                    <div className="w-3 h-0.5 bg-pink-500 mt-3" />
-                                  )}
-                                </div>
-                              )}
-                              <textarea 
+                              <RichTextEditor
                                 id={`textarea-${block.id}`}
                                 placeholder="Escribe aquí..."
                                 value={block.value}
-                                onChange={(e) => {
-                                  updateBlock(block.id, e.target.value);
-                                  const target = e.target as HTMLTextAreaElement;
-                                  target.style.height = 'auto';
-                                  target.style.height = `${target.scrollHeight}px`;
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey && (block.listStyle === 'bullet' || block.listStyle === 'dash')) {
-                                    e.preventDefault();
-                                    const target = e.target as HTMLTextAreaElement;
-                                    splitTextBlock(block.id, target.selectionStart);
-                                  }
-                                }}
-                                className={`w-full leading-relaxed text-purple-200 border-none focus:ring-0 placeholder:text-zinc-600 outline-none resize-none min-h-[40px]
+                                onChange={(val: string) => updateBlock(block.id, val)}
+                                className={`w-full leading-relaxed text-purple-200 border-none focus:ring-0 placeholder:text-zinc-600 empty:before:content-[attr(data-placeholder)] empty:before:text-zinc-600 empty:before:opacity-50
                                   ${block.fontSize === 'sm' ? 'text-sm' : ''}
                                   ${block.fontSize === 'base' || !block.fontSize ? 'text-lg' : ''}
                                   ${block.fontSize === 'lg' ? 'text-xl' : ''}
                                   ${block.fontSize === 'xl' ? 'text-2xl' : ''}
                                   ${block.fontSize === '2xl' ? 'text-3xl font-bold' : ''}
-                                  ${block.isBold ? 'font-bold' : ''}
-                                  ${block.isItalic ? 'italic' : ''}
-                                  ${block.isUnderline ? 'underline underline-offset-4' : ''}
                                 `}
-                                ref={(el) => {
-                                  if (el) {
-                                    el.style.height = 'auto';
-                                    el.style.height = `${el.scrollHeight}px`;
-                                  }
-                                }}
                               />
                             </div>
                           </div>

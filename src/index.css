@@ -1,1 +1,30 @@
 @import "tailwindcss";
+
+.editable-block ul {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.editable-block ul li {
+  margin-bottom: 0.25rem;
+}
+.editable-block ul li::marker {
+  color: #ec4899;
+}
+.editable-block ol {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.editable-block b, .editable-block strong {
+  font-weight: 700 !important;
+}
+.editable-block i, .editable-block em {
+  font-style: italic !important;
+}
+.editable-block u {
+  text-decoration: underline !important;
+  text-underline-offset: 4px;
+}
