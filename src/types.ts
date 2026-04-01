@@ -5,6 +5,9 @@ export type ContentBlock =
       value: string; 
       fontSize?: 'sm' | 'base' | 'lg' | 'xl' | '2xl';
       listStyle?: 'none' | 'bullet' | 'dash';
+      isBold?: boolean;
+      isItalic?: boolean;
+      isUnderline?: boolean;
     }
   | { id: string; type: 'image'; value: string; caption?: string };
 

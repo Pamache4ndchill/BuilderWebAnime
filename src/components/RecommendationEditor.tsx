@@ -14,6 +14,7 @@ import {
   Edit2
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { uploadToR2 } from '../lib/r2';
 import { Recommendation } from '../types';
 import { ImageUploader } from './ImageUploader';
 
@@ -84,12 +85,27 @@ export const RecommendationEditor: React.FC<RecommendationEditorProps> = ({ onBa
     setError(null);
 
     try {
+      let finalImageUrl = formData.image_url;
+      if (finalImageUrl && finalImageUrl.startsWith('data:')) {
+        try {
+          finalImageUrl = await uploadToR2(finalImageUrl, 'recomendaciones');
+        } catch (r2Error: any) {
+          throw new Error(`Error subiendo imagen a R2: ${r2Error.message || 'Error desconocido'}`);
+        }
+      }
+
+      const payload = {
+        ...formData,
+        image_url: finalImageUrl
+      };
+
       const { data, error } = await supabase
         .from('recomendacion')
-        .upsert([formData])
+        .upsert([payload])
         .select();
 
       if (error) throw error;
+      if (!data || data.length === 0) throw new Error('No se recibió confirmación del servidor al guardar.');
 
       if (formData.id) {
         // Update existing

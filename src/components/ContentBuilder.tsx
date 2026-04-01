@@ -19,7 +19,10 @@ import {
   Minus,
   List,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Bold,
+  Italic,
+  Underline
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ImageUploader } from './ImageUploader';
@@ -230,6 +233,43 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
       [newContent[index], newContent[newIndex]] = [newContent[newIndex], newContent[index]];
       updateArticle(selectedId, { content: newContent });
     }
+  };
+
+  const splitTextBlock = (blockId: string, caretPos: number) => {
+    if (!selectedId || !selectedArticle) return;
+    const index = selectedArticle.content.findIndex(b => b.id === blockId);
+    if (index === -1) return;
+    
+    const block = selectedArticle.content[index];
+    if (block.type !== 'text') return;
+
+    const textBefore = block.value.substring(0, caretPos);
+    const textAfter = block.value.substring(caretPos);
+
+    const newBlock: ContentBlock = {
+      id: crypto.randomUUID(),
+      type: 'text',
+      value: textAfter,
+      fontSize: block.fontSize,
+      listStyle: block.listStyle,
+      isBold: block.isBold,
+      isItalic: block.isItalic,
+      isUnderline: block.isUnderline
+    };
+
+    const newContent = [...selectedArticle.content];
+    newContent[index] = { ...block, value: textBefore };
+    newContent.splice(index + 1, 0, newBlock);
+    
+    updateArticle(selectedId, { content: newContent });
+    
+    setTimeout(() => {
+      const el = document.getElementById(`textarea-${newBlock.id}`) as HTMLTextAreaElement;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(0, 0);
+      }
+    }, 10);
   };
 
   const filteredArticles = articles.filter(a => 
@@ -492,6 +532,35 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
                               <div className="w-px h-4 bg-zinc-800" />
 
                               <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mr-1">Estilo</span>
+                                <div className="flex gap-1">
+                                  <button 
+                                    onClick={() => updateBlockProps(block.id, { isBold: !block.isBold })}
+                                    className={`p-1.5 rounded-full transition-all ${block.isBold ? 'bg-pink-500 text-zinc-100 shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
+                                    title="Negrita"
+                                  >
+                                    <Bold size={16} />
+                                  </button>
+                                  <button 
+                                    onClick={() => updateBlockProps(block.id, { isItalic: !block.isItalic })}
+                                    className={`p-1.5 rounded-full transition-all ${block.isItalic ? 'bg-pink-500 text-zinc-100 shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
+                                    title="Cursiva"
+                                  >
+                                    <Italic size={16} />
+                                  </button>
+                                  <button 
+                                    onClick={() => updateBlockProps(block.id, { isUnderline: !block.isUnderline })}
+                                    className={`p-1.5 rounded-full transition-all ${block.isUnderline ? 'bg-pink-500 text-zinc-100 shadow-lg shadow-pink-500/20' : 'text-zinc-500 hover:bg-zinc-800'}`}
+                                    title="Subrayado"
+                                  >
+                                    <Underline size={16} />
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="w-px h-4 bg-zinc-800" />
+
+                              <div className="flex items-center gap-2">
                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mr-1">Lista</span>
                                 <div className="flex gap-1">
                                   <button 
@@ -522,21 +591,37 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
                                 </div>
                               )}
                               <textarea 
+                                id={`textarea-${block.id}`}
                                 placeholder="Escribe aquí..."
                                 value={block.value}
-                                onChange={(e) => updateBlock(block.id, e.target.value)}
+                                onChange={(e) => {
+                                  updateBlock(block.id, e.target.value);
+                                  const target = e.target as HTMLTextAreaElement;
+                                  target.style.height = 'auto';
+                                  target.style.height = `${target.scrollHeight}px`;
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey && (block.listStyle === 'bullet' || block.listStyle === 'dash')) {
+                                    e.preventDefault();
+                                    const target = e.target as HTMLTextAreaElement;
+                                    splitTextBlock(block.id, target.selectionStart);
+                                  }
+                                }}
                                 className={`w-full leading-relaxed text-purple-200 border-none focus:ring-0 placeholder:text-zinc-600 outline-none resize-none min-h-[40px]
                                   ${block.fontSize === 'sm' ? 'text-sm' : ''}
                                   ${block.fontSize === 'base' || !block.fontSize ? 'text-lg' : ''}
                                   ${block.fontSize === 'lg' ? 'text-xl' : ''}
                                   ${block.fontSize === 'xl' ? 'text-2xl' : ''}
                                   ${block.fontSize === '2xl' ? 'text-3xl font-bold' : ''}
+                                  ${block.isBold ? 'font-bold' : ''}
+                                  ${block.isItalic ? 'italic' : ''}
+                                  ${block.isUnderline ? 'underline underline-offset-4' : ''}
                                 `}
-                                style={{ height: 'auto' }}
-                                onInput={(e) => {
-                                  const target = e.target as HTMLTextAreaElement;
-                                  target.style.height = 'auto';
-                                  target.style.height = `${target.scrollHeight}px`;
+                                ref={(el) => {
+                                  if (el) {
+                                    el.style.height = 'auto';
+                                    el.style.height = `${el.scrollHeight}px`;
+                                  }
                                 }}
                               />
                             </div>
