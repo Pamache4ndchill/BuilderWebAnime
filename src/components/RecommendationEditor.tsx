@@ -94,15 +94,28 @@ export const RecommendationEditor: React.FC<RecommendationEditorProps> = ({ onBa
         }
       }
 
-      const payload = {
-        ...formData,
+      const payload: any = {
+        title: formData.title,
+        anime_name: formData.anime_name,
+        trailer_url: formData.trailer_url,
         image_url: finalImageUrl
       };
 
-      const { data, error } = await supabase
-        .from('recomendacion')
-        .upsert([payload])
-        .select();
+      let request;
+      if (formData.id) {
+        request = supabase
+          .from('recomendacion')
+          .update(payload)
+          .eq('id', formData.id)
+          .select();
+      } else {
+        request = supabase
+          .from('recomendacion')
+          .insert([payload])
+          .select();
+      }
+
+      const { data, error } = await request;
 
       if (error) throw error;
       if (!data || data.length === 0) throw new Error('No se recibió confirmación del servidor al guardar.');
