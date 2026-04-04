@@ -2,7 +2,17 @@
 
 /* Fix for Apple/Safari devices defaulting to black text in inputs and editable elements */
 input, textarea, [contenteditable] {
-  -webkit-text-fill-color: currentColor;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-text-fill-color: inherit;
+  color: inherit;
+}
+
+/* Override inline colors injected by Safari autocomplete/paste */
+.editable-block * {
+  color: inherit !important;
+  background-color: transparent !important;
+  font-family: inherit !important;
 }
 
 .editable-block ul {

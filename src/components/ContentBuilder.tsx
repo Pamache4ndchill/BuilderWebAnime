@@ -49,7 +49,10 @@ const RichTextEditor = ({ value, onChange, className, id, placeholder }: any) =>
       suppressContentEditableWarning
       onInput={(e) => onChange(e.currentTarget.innerHTML)}
       onPaste={(e) => {
-        // Optional: you can sanitize paste if needed, but standard paste is usually okay
+        // Force plain text paste to prevent Safari/Apple devices from copying colors
+        e.preventDefault();
+        const text = e.clipboardData.getData('text/plain');
+        document.execCommand('insertText', false, text);
       }}
       className={`editable-block ${className}`}
       data-placeholder={placeholder}
