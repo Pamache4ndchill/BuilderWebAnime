@@ -49,10 +49,77 @@ const RichTextEditor = ({ value, onChange, className, id, placeholder }: any) =>
       suppressContentEditableWarning
       onInput={(e) => onChange(e.currentTarget.innerHTML)}
       onPaste={(e) => {
-        // Force plain text paste to prevent Safari/Apple devices from copying colors
         e.preventDefault();
+        
+        const html = e.clipboardData.getData('text/html');
         const text = e.clipboardData.getData('text/plain');
-        document.execCommand('insertText', false, text);
+
+        if (html) {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          
+          const processNode = (node: Node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const el = node as HTMLElement;
+              const isB = el.tagName === 'B' || el.tagName === 'STRONG' || el.style.fontWeight === 'bold' || parseInt(el.style.fontWeight || '0') >= 600;
+              const isI = el.tagName === 'I' || el.tagName === 'EM' || el.style.fontStyle === 'italic';
+              const isU = el.tagName === 'U' || el.style.textDecoration?.includes('underline');
+              
+              Array.from(el.childNodes).forEach(processNode);
+              
+              while (el.attributes.length > 0) {
+                el.removeAttribute(el.attributes[0].name);
+              }
+              
+              const allowedTags = ['B', 'STRONG', 'I', 'EM', 'U', 'BR', 'UL', 'OL', 'LI', 'P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'];
+              let currentEl = el;
+              
+              if (!allowedTags.includes(el.tagName)) {
+                currentEl = document.createElement('span');
+                while (el.firstChild) {
+                  currentEl.appendChild(el.firstChild);
+                }
+                el.replaceWith(currentEl);
+              }
+              
+              if (isU && currentEl.tagName !== 'U') {
+                 const u = document.createElement('u');
+                 while (currentEl.firstChild) u.appendChild(currentEl.firstChild);
+                 currentEl.appendChild(u);
+              }
+              if (isI && currentEl.tagName !== 'I' && currentEl.tagName !== 'EM') {
+                 const i = document.createElement('i');
+                 while (currentEl.firstChild) i.appendChild(currentEl.firstChild);
+                 currentEl.appendChild(i);
+              }
+              if (isB && currentEl.tagName !== 'B' && currentEl.tagName !== 'STRONG') {
+                 const b = document.createElement('b');
+                 while (currentEl.firstChild) b.appendChild(currentEl.firstChild);
+                 currentEl.appendChild(b);
+              }
+            }
+          };
+          
+          Array.from(doc.body.childNodes).forEach(processNode);
+          
+          doc.querySelectorAll('span').forEach(span => {
+             const fragment = document.createDocumentFragment();
+             while (span.firstChild) fragment.appendChild(span.firstChild);
+             if (span.parentNode) {
+               span.replaceWith(fragment);
+             }
+          });
+          
+          const cleanHtml = doc.body.innerHTML;
+          
+          if (cleanHtml.trim() === '') {
+            document.execCommand('insertText', false, text);
+          } else {
+            document.execCommand('insertHTML', false, cleanHtml);
+          }
+        } else if (text) {
+          document.execCommand('insertText', false, text);
+        }
       }}
       className={`editable-block ${className}`}
       data-placeholder={placeholder}
