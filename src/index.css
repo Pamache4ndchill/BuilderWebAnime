@@ -43,3 +43,10 @@ input, textarea, [contenteditable] {
   text-decoration: underline !important;
   text-underline-offset: 4px;
 }
+
+/* Selection-based Font Sizes */
+.editable-block font[size="2"] { font-size: 0.875rem; line-height: 1.25rem; } /* sm */
+.editable-block font[size="3"] { font-size: 1.125rem; line-height: 1.75rem; } /* base */
+.editable-block font[size="4"] { font-size: 1.25rem; line-height: 1.75rem; } /* lg */
+.editable-block font[size="5"] { font-size: 1.5rem; line-height: 2rem; }    /* xl */
+.editable-block font[size="6"] { font-size: 1.875rem; line-height: 2.25rem; } /* 2xl */

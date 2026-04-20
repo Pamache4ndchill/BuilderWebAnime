@@ -67,11 +67,18 @@ const RichTextEditor = ({ value, onChange, className, id, placeholder }: any) =>
               
               Array.from(el.childNodes).forEach(processNode);
               
+              const isFont = el.tagName === 'FONT';
+              const sizeAttr = el.getAttribute('size');
+              
               while (el.attributes.length > 0) {
                 el.removeAttribute(el.attributes[0].name);
               }
               
-              const allowedTags = ['B', 'STRONG', 'I', 'EM', 'U', 'BR', 'UL', 'OL', 'LI', 'P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'];
+              if (isFont && sizeAttr) {
+                el.setAttribute('size', sizeAttr);
+              }
+              
+              const allowedTags = ['B', 'STRONG', 'I', 'EM', 'U', 'BR', 'UL', 'OL', 'LI', 'P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'FONT'];
               let currentEl = el;
               
               if (!allowedTags.includes(el.tagName)) {
@@ -161,7 +168,8 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
           italic: document.queryCommandState('italic'),
           underline: document.queryCommandState('underline'),
           insertUnorderedList: document.queryCommandState('insertUnorderedList'),
-          insertOrderedList: document.queryCommandState('insertOrderedList')
+          insertOrderedList: document.queryCommandState('insertOrderedList'),
+          fontSize: document.queryCommandValue('fontSize')
         });
       }
     }
@@ -169,6 +177,8 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
 
   useEffect(() => {
     document.addEventListener('selectionchange', checkActiveFormats);
+    // Ensure we use tags like <font> instead of inline style spans for better control
+    document.execCommand('styleWithCSS', false, 'false');
     return () => document.removeEventListener('selectionchange', checkActiveFormats);
   }, [checkActiveFormats]);
 
@@ -415,8 +425,12 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
       {/* Sidebar */}
       <motion.aside 
         initial={false}
-        animate={{ width: isSidebarOpen ? 320 : 0, opacity: isSidebarOpen ? 1 : 0 }}
-        className="bg-zinc-900 border-r border-zinc-800 flex flex-col relative z-20"
+        animate={{ 
+          width: isSidebarOpen ? 320 : 0, 
+          opacity: isSidebarOpen ? 1 : 0,
+          pointerEvents: isSidebarOpen ? 'auto' : 'none'
+        }}
+        className="bg-zinc-900 border-r border-zinc-800 flex flex-col relative z-20 overflow-hidden"
       >
         <div className="p-6 border-bottom border-zinc-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -633,11 +647,15 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
                                 <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mr-1">Fuente</span>
                                 <div className="flex items-center bg-zinc-800/50 rounded-full px-2 py-0.5 border border-zinc-700/30">
                                   <button 
-                                    onClick={() => {
-                                      const sizes: ('sm' | 'base' | 'lg' | 'xl' | '2xl')[] = ['sm', 'base', 'lg', 'xl', '2xl'];
-                                      const currentIndex = sizes.indexOf(block.fontSize || 'base');
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
+                                      const sizes = ['2', '3', '4', '5', '6'];
+                                      let currentSize = activeFormats.fontSize;
+                                      if (!sizes.includes(currentSize)) currentSize = '3'; // default to base
+                                      const currentIndex = sizes.indexOf(currentSize);
                                       if (currentIndex > 0) {
-                                        updateBlockProps(block.id, { fontSize: sizes[currentIndex - 1] });
+                                        document.execCommand('fontSize', false, sizes[currentIndex - 1]);
+                                        checkActiveFormats();
                                       }
                                     }}
                                     className="p-1 hover:text-pink-400 transition-colors text-zinc-400"
@@ -645,13 +663,22 @@ export const ContentBuilder: React.FC<BuilderProps> = ({ title, contentType, aut
                                   >
                                     <ChevronDown size={14} />
                                   </button>
-                                  <span className="text-[10px] font-bold text-pink-500 w-10 text-center uppercase tracking-tighter">{block.fontSize || 'base'}</span>
+                                  <span className="text-[10px] font-bold text-pink-500 w-10 text-center uppercase tracking-tighter">
+                                    {(() => {
+                                      const map: any = { '2': 'sm', '3': 'base', '4': 'lg', '5': 'xl', '6': '2xl' };
+                                      return (focusedBlockId === block.id && map[activeFormats.fontSize]) || block.fontSize || 'base';
+                                    })()}
+                                  </span>
                                   <button 
-                                    onClick={() => {
-                                      const sizes: ('sm' | 'base' | 'lg' | 'xl' | '2xl')[] = ['sm', 'base', 'lg', 'xl', '2xl'];
-                                      const currentIndex = sizes.indexOf(block.fontSize || 'base');
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
+                                      const sizes = ['2', '3', '4', '5', '6'];
+                                      let currentSize = activeFormats.fontSize;
+                                      if (!sizes.includes(currentSize)) currentSize = '3'; // default to base
+                                      const currentIndex = sizes.indexOf(currentSize);
                                       if (currentIndex < sizes.length - 1) {
-                                        updateBlockProps(block.id, { fontSize: sizes[currentIndex + 1] });
+                                        document.execCommand('fontSize', false, sizes[currentIndex + 1]);
+                                        checkActiveFormats();
                                       }
                                     }}
                                     className="p-1 hover:text-pink-400 transition-colors text-zinc-400"

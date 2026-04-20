@@ -12,7 +12,8 @@ import {
   User as UserIcon,
   ShieldCheck,
   ChevronRight,
-  Loader2
+  Loader2,
+  ShoppingBag
 } from 'lucide-react';
 import { ContentBuilder } from './components/ContentBuilder';
 import { TopEditor } from './components/TopEditor';
@@ -21,7 +22,7 @@ import { LoginPage } from './components/Auth/LoginPage';
 import { UsernameSetup } from './components/Auth/UsernameSetup';
 import { supabase } from './lib/supabase';
 
-type ViewMode = 'home' | 'noticia' | 'tendencia' | 'manga' | 'videojuego' | 'tops' | 'recomendacion';
+type ViewMode = 'home' | 'noticia' | 'tendencia' | 'manga' | 'videojuego' | 'tops' | 'recomendacion' | 'ilaleli';
 
 export default function App() {
   const [view, setView] = useState<ViewMode>('home');
@@ -116,6 +117,13 @@ export default function App() {
       description: 'Destaca trailers y animes recomendados por el equipo.',
       icon: <Plus size={32} />,
       color: 'bg-pink-500',
+    },
+    {
+      id: 'ilaleli' as const,
+      title: 'Ilaleli',
+      description: 'Gestiona los productos y pedidos de tu tienda virtual.',
+      icon: <ShoppingBag size={32} />,
+      color: 'bg-indigo-500',
     }
   ];
 
@@ -245,6 +253,28 @@ export default function App() {
           <TopEditor onBack={() => setView('home')} />
         ) : view === 'recomendacion' ? (
           <RecommendationEditor onBack={() => setView('home')} />
+        ) : view === 'ilaleli' ? (
+          <div className="min-h-screen bg-black flex flex-col items-center justify-center p-10">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-zinc-900 border border-zinc-800 p-20 rounded-[3rem] text-center shadow-2xl"
+            >
+              <div className="w-20 h-20 bg-indigo-500 rounded-3xl flex items-center justify-center text-black mb-8 mx-auto shadow-lg shadow-indigo-500/20">
+                <ShoppingBag size={40} />
+              </div>
+              <h2 className="text-5xl font-black text-white tracking-tighter mb-4">Ilaleli</h2>
+              <p className="text-zinc-500 text-lg font-medium max-w-md mx-auto mb-10">
+                Esta sección está lista para recibir integraciones. Próximamente definiremos las herramientas a incluir aquí.
+              </p>
+              <button 
+                onClick={() => setView('home')}
+                className="px-10 py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-indigo-500 transition-all"
+              >
+                Volver al Dashboard
+              </button>
+            </motion.div>
+          </div>
         ) : (
           <ContentBuilder 
             key={view}

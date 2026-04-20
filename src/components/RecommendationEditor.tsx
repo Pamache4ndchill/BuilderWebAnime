@@ -284,7 +284,7 @@ export const RecommendationEditor: React.FC<RecommendationEditorProps> = ({ onBa
               <p className="text-zinc-500 font-black tracking-widest uppercase text-xs">Cargando recomendaciones...</p>
             </div>
           ) : (
-            Array.from({ length: 4 }).map((_, index) => {
+            Array.from({ length: 8 }).map((_, index) => {
               const rec = recommendations[index];
               if (rec) {
                 return (
@@ -354,7 +354,7 @@ export const RecommendationEditor: React.FC<RecommendationEditorProps> = ({ onBa
                       <Plus size={24} className="text-zinc-600 group-hover:text-pink-500 transition-colors" />
                     </div>
                     <p className="text-white font-black tracking-widest uppercase text-sm mb-2">Añadir Recomendación</p>
-                    <p className="text-zinc-500 font-medium text-[10px] uppercase tracking-widest">Espacio {index + 1} de 4</p>
+                    <p className="text-zinc-500 font-medium text-[10px] uppercase tracking-widest">Espacio {index + 1} de 8</p>
                   </motion.div>
                 );
               }
