@@ -18,6 +18,7 @@ import {
 import { ContentBuilder } from './components/ContentBuilder';
 import { TopEditor } from './components/TopEditor';
 import { RecommendationEditor } from './components/RecommendationEditor';
+import { IlaleliManager } from './components/IlaleliManager';
 import { LoginPage } from './components/Auth/LoginPage';
 import { UsernameSetup } from './components/Auth/UsernameSetup';
 import { supabase } from './lib/supabase';
@@ -254,27 +255,7 @@ export default function App() {
         ) : view === 'recomendacion' ? (
           <RecommendationEditor onBack={() => setView('home')} />
         ) : view === 'ilaleli' ? (
-          <div className="min-h-screen bg-black flex flex-col items-center justify-center p-10">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-zinc-900 border border-zinc-800 p-20 rounded-[3rem] text-center shadow-2xl"
-            >
-              <div className="w-20 h-20 bg-indigo-500 rounded-3xl flex items-center justify-center text-black mb-8 mx-auto shadow-lg shadow-indigo-500/20">
-                <ShoppingBag size={40} />
-              </div>
-              <h2 className="text-5xl font-black text-white tracking-tighter mb-4">Ilaleli</h2>
-              <p className="text-zinc-500 text-lg font-medium max-w-md mx-auto mb-10">
-                Esta sección está lista para recibir integraciones. Próximamente definiremos las herramientas a incluir aquí.
-              </p>
-              <button 
-                onClick={() => setView('home')}
-                className="px-10 py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-indigo-500 transition-all"
-              >
-                Volver al Dashboard
-              </button>
-            </motion.div>
-          </div>
+          <IlaleliManager onBack={() => setView('home')} />
         ) : (
           <ContentBuilder 
             key={view}

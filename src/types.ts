@@ -46,3 +46,14 @@ export interface Recommendation {
   image_url: string;
   created_at: string;
 }
+
+export interface CommissionInquiry {
+  id: string;
+  full_name: string;
+  email: string;
+  social_platform: string;
+  social_username: string;
+  message: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'rejected';
+  created_at: string;
+}
