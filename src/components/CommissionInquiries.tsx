@@ -14,7 +14,8 @@ import {
   Loader2,
   AlertCircle,
   Hash,
-  Send
+  Send,
+  Trash2
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { CommissionInquiry } from '../types';
@@ -28,6 +29,7 @@ export const CommissionInquiries: React.FC<CommissionInquiriesProps> = ({ onBack
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [inquiryToDelete, setInquiryToDelete] = useState<CommissionInquiry | null>(null);
 
   useEffect(() => {
     fetchInquiries();
@@ -65,6 +67,25 @@ export const CommissionInquiries: React.FC<CommissionInquiriesProps> = ({ onBack
       ));
     } catch (err: any) {
       alert('Error actualizando estado: ' + err.message);
+    }
+  };
+
+  const deleteInquiry = async () => {
+    if (!inquiryToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('commissions_inquiries')
+        .delete()
+        .eq('id', inquiryToDelete.id);
+
+      if (error) throw error;
+      
+      setInquiries(prev => prev.filter(item => item.id !== inquiryToDelete.id));
+      if (selectedId === inquiryToDelete.id) setSelectedId(null);
+      setInquiryToDelete(null);
+    } catch (err: any) {
+      alert('Error eliminando solicitud: ' + err.message);
     }
   };
 
@@ -137,6 +158,18 @@ export const CommissionInquiries: React.FC<CommissionInquiriesProps> = ({ onBack
                       }`} />
                       {getStatusText(inquiry.status)}
                    </div>
+
+                   <button
+                     onClick={(e) => {
+                        e.stopPropagation();
+                        setInquiryToDelete(inquiry);
+                     }}
+                     className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-zinc-800 text-zinc-500 hover:bg-red-500/10 hover:text-red-500"
+                     title="Eliminar solicitud"
+                   >
+                     <Trash2 size={16} />
+                   </button>
+
                    <motion.div
                      animate={{ rotate: selectedId === inquiry.id ? 180 : 0 }}
                      className="text-zinc-600"
@@ -235,6 +268,58 @@ export const CommissionInquiries: React.FC<CommissionInquiriesProps> = ({ onBack
           ))}
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {inquiryToDelete && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setInquiryToDelete(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-red-500/50" />
+              
+              <div className="flex flex-col items-center text-center space-y-6">
+                <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-500 border border-red-500/20">
+                  <AlertCircle size={32} />
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-xl font-black text-white">¿Confirmar eliminación?</h3>
+                  <p className="text-zinc-500 text-sm leading-relaxed">
+                    ¿Deseas eliminar la petición del usuario <br/>
+                    <span className="text-white font-black">"{inquiryToDelete.full_name}"</span>?
+                  </p>
+                </div>
+
+                <div className="flex w-full gap-3 pt-4">
+                  <button
+                    onClick={() => setInquiryToDelete(null)}
+                    className="flex-1 py-4 bg-zinc-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-700 transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={deleteInquiry}
+                    className="flex-1 py-4 bg-red-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500 transition-all shadow-xl shadow-red-600/20"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
