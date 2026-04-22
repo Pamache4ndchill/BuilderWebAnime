@@ -19,11 +19,12 @@ import { ContentBuilder } from './components/ContentBuilder';
 import { TopEditor } from './components/TopEditor';
 import { RecommendationEditor } from './components/RecommendationEditor';
 import { IlaleliManager } from './components/IlaleliManager';
+import { CommunityManager } from './components/CommunityManager';
 import { LoginPage } from './components/Auth/LoginPage';
 import { UsernameSetup } from './components/Auth/UsernameSetup';
 import { supabase } from './lib/supabase';
 
-type ViewMode = 'home' | 'noticia' | 'tendencia' | 'manga' | 'videojuego' | 'tops' | 'recomendacion' | 'ilaleli';
+type ViewMode = 'home' | 'noticia' | 'tendencia' | 'manga' | 'videojuego' | 'tops' | 'recomendacion' | 'ilaleli' | 'comunidad';
 
 export default function App() {
   const [view, setView] = useState<ViewMode>('home');
@@ -125,6 +126,13 @@ export default function App() {
       description: 'Gestiona los productos y pedidos de tu tienda virtual.',
       icon: <ShoppingBag size={32} />,
       color: 'bg-indigo-500',
+    },
+    {
+      id: 'comunidad' as const,
+      title: 'Comunidad',
+      description: 'Gestiona los streamers recomendados y destacados.',
+      icon: <UserIcon size={32} />,
+      color: 'bg-purple-600',
     }
   ];
 
@@ -256,6 +264,8 @@ export default function App() {
           <RecommendationEditor onBack={() => setView('home')} />
         ) : view === 'ilaleli' ? (
           <IlaleliManager onBack={() => setView('home')} />
+        ) : view === 'comunidad' ? (
+          <CommunityManager onBack={() => setView('home')} />
         ) : (
           <ContentBuilder 
             key={view}

@@ -57,3 +57,15 @@ export interface CommissionInquiry {
   status: 'pending' | 'in_progress' | 'completed' | 'rejected';
   created_at: string;
 }
+
+export interface CommunityStreamer {
+  id: string;
+  name: string;
+  tagline: string;
+  bio: string;
+  image_url: string;
+  twitch_url: string;
+  order_index: number;
+  created_at?: string;
+  updated_at?: string;
+}
