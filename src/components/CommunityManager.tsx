@@ -139,6 +139,8 @@ export const CommunityManager: React.FC<CommunityManagerProps> = ({ onBack }) =>
         order_index: formData.order_index || (isAdding ? streamers.length + 1 : originalData?.order_index)
       };
 
+      console.log('Enviando payload a Supabase:', payload);
+
       let result;
       if (expandedId && !isAdding) {
         result = await supabase
@@ -153,11 +155,32 @@ export const CommunityManager: React.FC<CommunityManagerProps> = ({ onBack }) =>
           .select();
       }
 
-      if (result.error) throw result.error;
+      if (result.error) {
+        console.error('Error de Supabase:', result.error);
+        throw result.error;
+      }
+
+      // Si no hay error pero no hay data, es probable que RLS esté bloqueando el SELECT
+      // pero el INSERT/UPDATE sí se haya realizado.
+      if (!result.data || result.data.length === 0) {
+        console.warn('El registro se guardó pero las políticas RLS impiden leerlo inmediatamente.');
+        resetForm();
+        await fetchStreamers();
+        return;
+      }
+
+      const savedStreamer = result.data[0];
       
-      await fetchStreamers();
+      if (expandedId && !isAdding) {
+        setStreamers(prev => prev.map(s => s.id === expandedId ? savedStreamer : s));
+      } else {
+        setStreamers(prev => [...prev, savedStreamer]);
+      }
+      
       resetForm();
+      fetchStreamers();
     } catch (err: any) {
+      console.error('Error en handleSave:', err);
       setError('Error al guardar: ' + err.message);
     } finally {
       setIsSaving(false);
@@ -208,16 +231,8 @@ export const CommunityManager: React.FC<CommunityManagerProps> = ({ onBack }) =>
             if (isAdding) {
               resetForm();
             } else {
-              setFormData({
-                name: '',
-                tagline: '',
-                bio: '',
-                image_url: '',
-                twitch_url: '',
-                order_index: streamers.length + 1
-              });
+              resetForm();
               setIsAdding(true);
-              setExpandedId(null);
             }
           }}
           className={`px-6 py-3 rounded-xl flex items-center gap-2 font-black uppercase tracking-widest text-[10px] shadow-lg transition-all border ${
@@ -273,6 +288,16 @@ export const CommunityManager: React.FC<CommunityManagerProps> = ({ onBack }) =>
               </div>
 
               <div className="max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+                {error && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-4 text-red-500"
+                  >
+                    <AlertCircle size={20} />
+                    <p className="text-xs font-medium">{error}</p>
+                  </motion.div>
+                )}
                 <StreamerForm 
                   formData={formData}
                   setFormData={setFormData}
@@ -421,12 +446,12 @@ const StreamerForm: React.FC<StreamerFormProps> = ({ formData, setFormData, onSu
             <div className="relative">
               <Twitch className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
               <input
-                type="url"
+                type="text"
                 required
                 value={formData.twitch_url || ''}
                 onChange={(e) => setFormData({ ...formData, twitch_url: e.target.value })}
                 className="w-full bg-black border border-zinc-800 rounded-xl pl-12 pr-4 py-3 text-sm text-white placeholder:text-zinc-700 focus:outline-none focus:border-pink-500/50 transition-colors font-medium"
-                placeholder="https://twitch.tv/..."
+                placeholder="https://twitch.tv/usuario"
               />
             </div>
           </div>
